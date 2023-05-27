@@ -35,11 +35,19 @@ automake, libtool and pkg-config.
 	./autogen.sh
 
 
-Compilation:
+Compilation On Mac M2:
 
-	./configure
+```sh
+  sed -i -e 's/s\/-L\/-R\/g/s\/-L\/-Wl,-rpath,\/g/g' **/configure # setup rpath
+  sed -i -e 's/s\/-L\/-R\/g/s\/-L\/-Wl,-rpath,\/g/g' **/ax_detect_clang.m4 # avoid override by reconfigure.
+  export CFLAGS=-I/Users/lisa/miniforge3/envs/ci/include # please use conda install gmp NOTE need replace by your path
+  export LDFLAGS=-L/Users/lisa/miniforge3/envs/ci/lib # gmp.dylib
+  ./configure --with-clang-prefix=/Users/lisa/Documents/llvm-project/build/install # the custom llvm install 
 	make
+  # I don't know how to modify the configure script for add rpath, so manual link the lib with rpath. 
+  /bin/sh ./libtool --silent --tag=CC --mode=link gcc -Wl,-rpath /Users/lisa/Documents/llvm-project/build/install/lib  -Wl,-rpath /Users/lisa/miniforge3/envs/ci/lib  -I/Users/lisa/miniforge3/envs/ci/include  -L/Users/lisa/miniforge3/envs/ci/lib -o ppcg cpu.o cuda.o opencl.o cuda_common.o gpu.o gpu_array_tile.o gpu_group.o gpu_hybrid.o gpu_print.o gpu_tree.o grouping.o hybrid.o schedule.o ppcg_options.o ppcg.o print.o util.o version.o ./pet/libpet.la  ./isl/libisl.la
 	make check
+```
 
 If you have installed any of the required libraries in a non-standard
 location, then you may need to use the --with-gmp-prefix,
